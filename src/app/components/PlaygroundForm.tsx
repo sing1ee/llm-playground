@@ -5,7 +5,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import remarkGfm from "remark-gfm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import "./MarkdownStyles.css";
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
 }
@@ -138,7 +138,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             </div>
             <div className="border p-2 w-full h-auto min-h-32 overflow-x-auto">
                 <ReactMarkdown
-                    className="prose max-w-none"
+                    className="markdown-body"
                     remarkPlugins={[remarkGfm]}
                     components={{
                         code({ node, inline, className, children, ...props }) {
