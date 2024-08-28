@@ -183,7 +183,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     </button>
                 </div>
             </Collapsible>
-            <div className="flex mt-4">
+            <div className="flex">
                 <div className="w-full p-2">
                     <Select
                         options={models.map((model) => ({
@@ -235,20 +235,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                         className="markdown-body"
                         remarkPlugins={[remarkGfm]}
                         components={{
-                            code({
-                                node,
-                                inline,
-                                className,
-                                children,
-                                ...props
-                            }) {
+                            code({ node, className, children, ...props }) {
                                 const text = String(children).replace(
                                     /\n$/,
                                     ""
                                 );
                                 const hasLanguageIdentifier =
                                     className?.includes("language-");
-                                return !inline && hasLanguageIdentifier ? (
+                                return hasLanguageIdentifier ? (
                                     <div className="relative">
                                         <pre className={className}>
                                             <code
