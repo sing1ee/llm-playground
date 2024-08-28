@@ -1,0 +1,22 @@
+.settings-trigger {
+    background-color: #f0f0f0; /* Default background color */
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.settings-trigger.open {
+    background-color: #d0d0d0; /* Background color when open */
+    border-bottom: none; /* Remove bottom border to blend with content */
+}
+
+.settings-trigger .arrow {
+    margin-left: auto; /* Push the arrow to the right */
+    transition: transform 0.3s; /* Smooth transition for arrow rotation */
+}
+
+.settings-trigger.open .arrow {
+    transform: rotate(180deg); /* Rotate arrow when open */
+}
