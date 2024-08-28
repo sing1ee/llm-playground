@@ -34,6 +34,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             selectedModel: string;
         }[]
     >([]);
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -43,6 +44,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     }, []);
 
     const loadModels = async () => {
+        setIsLoadingModels(true); // Set loading state
         const response = await fetch("/api/models", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -50,6 +52,8 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         });
         const data = await response.json();
         setModels(data);
+        setSelectedModel(""); // Reset selected model to trigger re-render
+        setIsLoadingModels(false); // Reset loading state
         toast.success("Models loaded successfully!", {
             position: "top-right",
             autoClose: 3000,
@@ -181,11 +185,20 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                         onChange={(option) =>
                             setSelectedModel(option?.value || "")
                         }
+                        onKeyDown={(e) => {
+                            if (
+                                e.key === "Backspace" &&
+                                !e.currentTarget.value
+                            ) {
+                                setSelectedModel("");
+                            }
+                        }}
                         options={models.map((model) => ({
                             value: model,
                             label: model,
                         }))}
                         isClearable
+                        isLoading={isLoadingModels} // Use loading state
                         placeholder="Select a model"
                         className="w-full"
                         instanceId="model-select"
