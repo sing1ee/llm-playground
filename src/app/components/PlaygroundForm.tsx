@@ -23,7 +23,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [prompt, setPrompt] = useState("");
     const [result, setLocalResult] = useState("");
     const [history, setHistory] = useState<
-        { time: string; prompt: string; result: string }[]
+        {
+            time: string;
+            prompt: string;
+            result: string;
+            baseUrl: string;
+            apiKey: string;
+            temperature: number;
+            maxTokens: number;
+            selectedModel: string;
+        }[]
     >([]);
 
     useEffect(() => {
@@ -53,7 +62,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     };
 
     const saveToHistory = (prompt: string, result: string) => {
-        const newEntry = { time: new Date().toISOString(), prompt, result };
+        const newEntry = {
+            time: new Date().toISOString(),
+            prompt,
+            result,
+            baseUrl,
+            apiKey,
+            temperature,
+            maxTokens,
+            selectedModel,
+        };
         const updatedHistory = [newEntry, ...history.slice(0, 99)];
         setHistory(updatedHistory);
         localStorage.setItem(
@@ -89,9 +107,22 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         setResult(result);
     };
 
-    const handleHistoryClick = (entry: { prompt: string; result: string }) => {
+    const handleHistoryClick = (entry: {
+        prompt: string;
+        result: string;
+        baseUrl: string;
+        apiKey: string;
+        temperature: number;
+        maxTokens: number;
+        selectedModel: string;
+    }) => {
         setPrompt(entry.prompt);
         setLocalResult(entry.result);
+        setBaseUrl(entry.baseUrl);
+        setApiKey(entry.apiKey);
+        setTemperature(entry.temperature);
+        setMaxTokens(entry.maxTokens);
+        setSelectedModel(entry.selectedModel);
     };
 
     return (

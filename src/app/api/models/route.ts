@@ -4,9 +4,6 @@ import { ClientOptions, OpenAI } from 'openai'
 export async function POST(request: Request) {
     const { baseUrl, apiKey } = await request.json()
 
-    console.log('baseUrl:', baseUrl)
-    console.log('apiKey:', apiKey)
-
     const configuration: ClientOptions = {
         apiKey: apiKey,
         baseURL: baseUrl,
