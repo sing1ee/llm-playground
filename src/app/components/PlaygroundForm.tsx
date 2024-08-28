@@ -179,39 +179,35 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                         Load Models
                     </button>
                 </div>
-                <div className="mt-4">
-                    <Select
-                        value={{ value: selectedModel, label: selectedModel }}
-                        onChange={(option) =>
-                            setSelectedModel(option?.value || "")
-                        }
-                        onKeyDown={(e) => {
-                            if (
-                                e.key === "Backspace" &&
-                                !e.currentTarget.value
-                            ) {
-                                setSelectedModel("");
-                            }
-                        }}
-                        options={models.map((model) => ({
-                            value: model,
-                            label: model,
-                        }))}
-                        isClearable
-                        isLoading={isLoadingModels} // Use loading state
-                        placeholder="Select a model"
-                        className="w-full"
-                        instanceId="model-select"
+            </Collapsible>
+            <div className="flex mt-4">
+                <div className="w-2/5 border p-2 overflow-y-auto h-72">
+                    <button
+                        onClick={() => setSelectedModel("")}
+                        className="mb-2 w-full text-left"
+                    >
+                        Clear Selection
+                    </button>
+                    {models.map((model) => (
+                        <div
+                            key={model}
+                            onClick={() => setSelectedModel(model)}
+                            className={`cursor-pointer hover:bg-gray-100 ${
+                                selectedModel === model ? "bg-yellow-100" : ""
+                            }`}
+                        >
+                            {model}
+                        </div>
+                    ))}
+                </div>
+                <div className="w-3/5">
+                    <textarea
+                        placeholder="Enter your prompt"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="border p-2 w-full h-72"
                     />
                 </div>
-            </Collapsible>
-            <div>
-                <textarea
-                    placeholder="Enter your prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="border p-2 w-full h-32"
-                />
             </div>
             <div className="flex space-x-4">
                 <button
