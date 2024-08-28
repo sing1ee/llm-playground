@@ -35,6 +35,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         }[]
     >([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
+    const [filter, setFilter] = useState("");
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -76,6 +77,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             maxTokens,
             selectedModel,
         };
+        console.log(newEntry);
         const updatedHistory = [newEntry, ...history.slice(0, 99)];
         setHistory(updatedHistory);
         localStorage.setItem(
@@ -120,6 +122,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         maxTokens: number;
         selectedModel: string;
     }) => {
+        console.log(entry);
         setPrompt(entry.prompt);
         setLocalResult(entry.result);
         setBaseUrl(entry.baseUrl);
@@ -181,26 +184,24 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 </div>
             </Collapsible>
             <div className="flex mt-4">
-                <div className="w-2/5 border p-2 overflow-y-auto h-72">
-                    <button
-                        onClick={() => setSelectedModel("")}
-                        className="mb-2 w-full text-left"
-                    >
-                        Clear Selection
-                    </button>
-                    {models.map((model) => (
-                        <div
-                            key={model}
-                            onClick={() => setSelectedModel(model)}
-                            className={`cursor-pointer hover:bg-gray-100 ${
-                                selectedModel === model ? "bg-yellow-100" : ""
-                            }`}
-                        >
-                            {model}
-                        </div>
-                    ))}
+                <div className="w-full p-2">
+                    <Select
+                        options={models.map((model) => ({
+                            value: model,
+                            label: model,
+                        }))}
+                        value={{ value: selectedModel, label: selectedModel }}
+                        onChange={(selectedOption) =>
+                            setSelectedModel(selectedOption?.value || "")
+                        }
+                        isClearable
+                        placeholder="Filter models..."
+                        className="mb-2"
+                    />
                 </div>
-                <div className="w-3/5">
+            </div>
+            <div className="flex mt-4">
+                <div className="w-full">
                     <textarea
                         placeholder="Enter your prompt"
                         value={prompt}
