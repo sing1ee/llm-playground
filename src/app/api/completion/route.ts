@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { ClientOptions, OpenAI } from 'openai'
 
 export async function POST(request: Request) {
-    const { baseUrl, apiKey, model, prompt, maxTokens, temperature } = await request.json()
+    let { baseUrl, apiKey, model, prompt, maxTokens, temperature } = await request.json()
+    if (!baseUrl) baseUrl = 'https://api.siliconflow.cn/v1';
+    if (!apiKey) apiKey = 'sk-xapavxiazxgkjhhmqgqyoeyskdfmrmosqqzknmhixcgdqpli';
+    if (!model) model = 'Qwen/Qwen2-7B-Instruct';
 
     const configuration: ClientOptions = {
         apiKey: apiKey,

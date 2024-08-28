@@ -14,10 +14,10 @@ interface PlaygroundFormProps {
 }
 
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
-    const [baseUrl, setBaseUrl] = useState("https://openrouter.ai/api/v1");
+    const [baseUrl, setBaseUrl] = useState("");
     const [apiKey, setApiKey] = useState("");
     const [temperature, setTemperature] = useState(0.7);
-    const [maxTokens, setMaxTokens] = useState(10000);
+    const [maxTokens, setMaxTokens] = useState(4000);
     const [models, setModels] = useState<string[]>([]);
     const [selectedModel, setSelectedModel] = useState("");
     const [prompt, setPrompt] = useState("");
@@ -63,7 +63,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             const { done, value } = await reader!.read();
             if (done) break;
             result += new TextDecoder().decode(value);
-            console.log(result);
             setLocalResult(result);
         }
     };
