@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 import ReactMarkdown from "react-markdown";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -22,6 +22,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [selectedModel, setSelectedModel] = useState("");
     const [prompt, setPrompt] = useState("");
     const [result, setLocalResult] = useState("");
+    const [history, setHistory] = useState<
+        { time: string; prompt: string; result: string }[]
+    >([]);
+
+    useEffect(() => {
+        const storedHistory = localStorage.getItem("playgroundHistory");
+        if (storedHistory) {
+            setHistory(JSON.parse(storedHistory));
+        }
+    }, []);
 
     const loadModels = async () => {
         const response = await fetch("/api/models", {
@@ -40,6 +50,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             draggable: true,
             progress: undefined,
         });
+    };
+
+    const saveToHistory = (prompt: string, result: string) => {
+        const newEntry = { time: new Date().toISOString(), prompt, result };
+        const updatedHistory = [newEntry, ...history.slice(0, 99)];
+        setHistory(updatedHistory);
+        localStorage.setItem(
+            "playgroundHistory",
+            JSON.stringify(updatedHistory)
+        );
     };
 
     const handlePlay = async () => {
@@ -65,6 +85,13 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             result += new TextDecoder().decode(value);
             setLocalResult(result);
         }
+        saveToHistory(prompt, result);
+        setResult(result);
+    };
+
+    const handleHistoryClick = (entry: { prompt: string; result: string }) => {
+        setPrompt(entry.prompt);
+        setLocalResult(entry.result);
     };
 
     return (
@@ -150,54 +177,79 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     Play
                 </button>
             </div>
-            <div className="border p-2 w-full h-auto min-h-32 overflow-x-auto">
-                <ReactMarkdown
-                    className="markdown-body"
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                        code({ node, inline, className, children, ...props }) {
-                            const text = String(children).replace(/\n$/, "");
-                            const hasLanguageIdentifier =
-                                className?.includes("language-");
-                            return !inline && hasLanguageIdentifier ? (
-                                <div className="relative">
-                                    <pre className={className}>
-                                        <code className={className} {...props}>
-                                            {children}
-                                        </code>
-                                    </pre>
-                                    <CopyToClipboard
-                                        text={text}
-                                        onCopy={() =>
-                                            toast.success(
-                                                "Code copied successfully!",
-                                                {
-                                                    position: "top-right",
-                                                    autoClose: 3000,
-                                                    hideProgressBar: false,
-                                                    closeOnClick: true,
-                                                    pauseOnHover: true,
-                                                    draggable: true,
-                                                    progress: undefined,
-                                                }
-                                            )
-                                        }
-                                    >
-                                        <button className="absolute top-2 right-2 bg-gray-200 p-1 rounded">
-                                            Copy
-                                        </button>
-                                    </CopyToClipboard>
-                                </div>
-                            ) : (
-                                <code className={className} {...props}>
-                                    {children}
-                                </code>
-                            );
-                        },
-                    }}
-                >
-                    {result}
-                </ReactMarkdown>
+            <div className="flex">
+                <div className="w-1/5 border p-2 overflow-y-auto">
+                    {history.map((entry, index) => (
+                        <div
+                            key={index}
+                            onClick={() => handleHistoryClick(entry)}
+                            className="cursor-pointer hover:bg-gray-100"
+                        >
+                            <p>{new Date(entry.time).toLocaleString()}</p>
+                        </div>
+                    ))}
+                </div>
+                <div className="w-4/5 border p-2 h-auto min-h-32 overflow-x-auto">
+                    <ReactMarkdown
+                        className="markdown-body"
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                            code({
+                                node,
+                                inline,
+                                className,
+                                children,
+                                ...props
+                            }) {
+                                const text = String(children).replace(
+                                    /\n$/,
+                                    ""
+                                );
+                                const hasLanguageIdentifier =
+                                    className?.includes("language-");
+                                return !inline && hasLanguageIdentifier ? (
+                                    <div className="relative">
+                                        <pre className={className}>
+                                            <code
+                                                className={className}
+                                                {...props}
+                                            >
+                                                {children}
+                                            </code>
+                                        </pre>
+                                        <CopyToClipboard
+                                            text={text}
+                                            onCopy={() =>
+                                                toast.success(
+                                                    "Code copied successfully!",
+                                                    {
+                                                        position: "top-right",
+                                                        autoClose: 3000,
+                                                        hideProgressBar: false,
+                                                        closeOnClick: true,
+                                                        pauseOnHover: true,
+                                                        draggable: true,
+                                                        progress: undefined,
+                                                    }
+                                                )
+                                            }
+                                        >
+                                            <button className="absolute top-2 right-2 bg-gray-200 p-1 rounded">
+                                                Copy
+                                            </button>
+                                        </CopyToClipboard>
+                                    </div>
+                                ) : (
+                                    <code className={className} {...props}>
+                                        {children}
+                                    </code>
+                                );
+                            },
+                        }}
+                    >
+                        {result}
+                    </ReactMarkdown>
+                </div>
             </div>
         </div>
     );
