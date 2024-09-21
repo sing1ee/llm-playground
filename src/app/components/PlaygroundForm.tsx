@@ -25,6 +25,8 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showPopover, setShowPopover] = useState(false);
+    const [popoverContent, setPopoverContent] = useState("");
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -104,6 +106,32 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
     const toggleFullScreen = () => {
         setIsFullScreen(!isFullScreen);
+    };
+
+    const handleRenderContent = (content: string, isSvg: boolean) => {
+        if (isSvg) {
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>SVG Render</title>
+                    <style>
+                        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        svg { max-width: 100%; max-height: 100vh; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `;
+            setPopoverContent(htmlContent);
+        } else {
+            setPopoverContent(content);
+        }
+        setShowPopover(true);
     };
 
     return (
@@ -214,6 +242,10 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                     );
                                     const hasLanguageIdentifier =
                                         className?.includes("language-");
+                                    const isHtml =
+                                        className?.includes("language-html");
+                                    const isSvg =
+                                        className?.includes("language-svg");
                                     return hasLanguageIdentifier ? (
                                         <div className="relative">
                                             <pre className={className}>
@@ -224,18 +256,33 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                                     {children}
                                                 </code>
                                             </pre>
-                                            <CopyToClipboard
-                                                text={text}
-                                                onCopy={() =>
-                                                    toast.success(
-                                                        "Code copied successfully!"
-                                                    )
-                                                }
-                                            >
-                                                <button className="absolute top-2 right-2 bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
-                                                    Copy
-                                                </button>
-                                            </CopyToClipboard>
+                                            <div className="absolute top-2 right-2 flex space-x-2">
+                                                <CopyToClipboard
+                                                    text={text}
+                                                    onCopy={() =>
+                                                        toast.success(
+                                                            "Code copied successfully!"
+                                                        )
+                                                    }
+                                                >
+                                                    <button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                                                        Copy
+                                                    </button>
+                                                </CopyToClipboard>
+                                                {(isHtml || isSvg) && (
+                                                    <button
+                                                        onClick={() =>
+                                                            handleRenderContent(
+                                                                text,
+                                                                isSvg
+                                                            )
+                                                        }
+                                                        className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                                                    >
+                                                        Render
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
                                         <code className={className} {...props}>
@@ -250,6 +297,27 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     </div>
                 </div>
             </div>
+            {showPopover && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-4 rounded-lg w-3/4 h-3/4 overflow-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">
+                                Rendered Content
+                            </h2>
+                            <button
+                                onClick={() => setShowPopover(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                        <div
+                            className="rendered-content"
+                            dangerouslySetInnerHTML={{ __html: popoverContent }}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
