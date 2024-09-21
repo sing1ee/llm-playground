@@ -27,6 +27,11 @@ interface Settings {
     systemPromptType: string;
 }
 
+interface Role {
+    name: string;
+    systemPrompt: string;
+}
+
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [prompt, setPrompt] = useState("");
     const [result, setLocalResult] = useState("");
@@ -45,6 +50,9 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         useSystemPrompt: false,
         systemPromptType: "",
     });
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [newRoleName, setNewRoleName] = useState("");
+    const [newRoleSystemPrompt, setNewRoleSystemPrompt] = useState("");
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -55,6 +63,11 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         const storedSettings = localStorage.getItem("playgroundSettings");
         if (storedSettings) {
             setSettings(JSON.parse(storedSettings));
+        }
+
+        const storedRoles = localStorage.getItem("playgroundRoles");
+        if (storedRoles) {
+            setRoles(JSON.parse(storedRoles));
         }
     }, []);
 
@@ -180,18 +193,23 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
     const handleSystemPromptTypeChange = (value: string) => {
         let systemPrompt = "";
-        switch (value) {
-            case "测字大师":
-                systemPrompt = `"你是一个测字大师，擅长解读汉字的含义和寓意。"`;
-                break;
-            case "艺术字体":
-                systemPrompt =
-                    "你是一个艺术字体设计师，擅长创造独特的字体设计。";
-                break;
-            case "方法论":
-                systemPrompt =
-                    "你是一个方法论专家，擅长提供系统化的问题解决方案。";
-                break;
+        const selectedRole = roles.find((role) => role.name === value);
+        if (selectedRole) {
+            systemPrompt = selectedRole.systemPrompt;
+        } else {
+            switch (value) {
+                case "测字大师":
+                    systemPrompt = `"你是一个测字大师，擅长解读汉字的含义和寓意。"`;
+                    break;
+                case "艺术字体":
+                    systemPrompt =
+                        "你是一个艺术字体设计师，擅长创造独特的字体设计。";
+                    break;
+                case "方法论":
+                    systemPrompt =
+                        "你是一个方法论专家，擅长提供系统化的问题解决方案。";
+                    break;
+            }
         }
         setSettings((prev) => ({
             ...prev,
@@ -213,6 +231,55 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const saveSettings = () => {
         localStorage.setItem("playgroundSettings", JSON.stringify(settings));
         toast.success("Settings saved successfully!");
+    };
+
+    const handleAddRole = () => {
+        if (newRoleName && newRoleSystemPrompt) {
+            const newRole: Role = {
+                name: newRoleName,
+                systemPrompt: newRoleSystemPrompt,
+            };
+            const updatedRoles = [...roles, newRole];
+            setRoles(updatedRoles);
+            localStorage.setItem(
+                "playgroundRoles",
+                JSON.stringify(updatedRoles)
+            );
+            setNewRoleName("");
+            setNewRoleSystemPrompt("");
+            toast.success("New role added successfully!");
+        } else {
+            toast.error(
+                "Please provide both a name and system prompt for the new role."
+            );
+        }
+    };
+
+    const handleDeleteRole = (roleName: string) => {
+        const updatedRoles = roles.filter((role) => role.name !== roleName);
+        setRoles(updatedRoles);
+        localStorage.setItem("playgroundRoles", JSON.stringify(updatedRoles));
+
+        // If the deleted role was selected, reset the system prompt
+        if (settings.systemPromptType === roleName) {
+            setSettings((prev) => ({
+                ...prev,
+                systemPromptType: "",
+                systemPrompt: "",
+                useSystemPrompt: false,
+            }));
+            localStorage.setItem(
+                "playgroundSettings",
+                JSON.stringify({
+                    ...settings,
+                    systemPromptType: "",
+                    systemPrompt: "",
+                    useSystemPrompt: false,
+                })
+            );
+        }
+
+        toast.success(`Role "${roleName}" deleted successfully!`);
     };
 
     return (
@@ -262,21 +329,113 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 <h1 className="text-3xl font-bold text-primary">
                     AI Playground
                 </h1>
-                <div className="mb-4">
+                <div className="mb-4 flex items-center space-x-2 flex-wrap">
                     <ToggleGroup
                         type="single"
                         value={settings.systemPromptType}
                         onValueChange={handleSystemPromptTypeChange}
-                        className="justify-start"
+                        className="justify-start flex-wrap"
                     >
-                        <ToggleGroupItem value="测字大师">
-                            测字大师
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="艺术字体">
-                            艺术字体
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="方法论">方法论</ToggleGroupItem>
+                        {roles.map((role) => (
+                            <div key={role.name} className="flex items-center">
+                                <ToggleGroupItem value={role.name}>
+                                    {role.name}
+                                </ToggleGroupItem>
+                                <button
+                                    onClick={() => handleDeleteRole(role.name)}
+                                    className="ml-1 p-1 text-red-500 hover:text-red-700"
+                                    title={`Delete ${role.name} role`}
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={1.5}
+                                        stroke="currentColor"
+                                        className="w-4 h-4"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        ))}
                     </ToggleGroup>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button
+                                className="p-2 bg-secondary rounded-full hover:bg-accent transition-colors"
+                                aria-label="Add new role"
+                                title="Add new role"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={1.5}
+                                    stroke="currentColor"
+                                    className="w-6 h-6"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 4.5v15m7.5-7.5h-15"
+                                    />
+                                </svg>
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 bg-white">
+                            <div className="grid gap-4">
+                                <h3 className="font-medium leading-none">
+                                    Add New Role
+                                </h3>
+                                <div className="grid gap-2">
+                                    <label
+                                        htmlFor="roleName"
+                                        className="text-sm font-medium leading-none"
+                                    >
+                                        Role Name
+                                    </label>
+                                    <input
+                                        id="roleName"
+                                        value={newRoleName}
+                                        onChange={(e) =>
+                                            setNewRoleName(e.target.value)
+                                        }
+                                        className="border rounded p-2"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <label
+                                        htmlFor="roleSystemPrompt"
+                                        className="text-sm font-medium leading-none"
+                                    >
+                                        System Prompt
+                                    </label>
+                                    <textarea
+                                        id="roleSystemPrompt"
+                                        value={newRoleSystemPrompt}
+                                        onChange={(e) =>
+                                            setNewRoleSystemPrompt(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="border rounded p-2"
+                                        rows={3}
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleAddRole}
+                                    className="bg-primary text-white rounded p-2 hover:bg-accent transition-colors"
+                                >
+                                    Add Role
+                                </button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="mb-4">
                     <textarea
