@@ -67,7 +67,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             maxTokens,
             selectedModel,
         };
-        const updatedHistory = [newEntry, ...history.slice(0, 50)];
+        const updatedHistory = [newEntry, ...history.slice(0, 99)];
         setHistory(updatedHistory);
         localStorage.setItem(
             "playgroundHistory",
@@ -200,7 +200,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     placeholder="Enter your prompt"
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="textarea w-full h-40"
+                    className="textarea w-full h-100"
                 />
             </div>
             <div className="mb-4">
