@@ -7,7 +7,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MarkdownStyles.css";
 import Collapsible from "react-collapsible";
-import "./PlaygroundForm.css";
 
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
@@ -35,7 +34,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         }[]
     >([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
-    const [filter, setFilter] = useState("");
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -45,7 +43,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     }, []);
 
     const loadModels = async () => {
-        setIsLoadingModels(true); // Set loading state
+        setIsLoadingModels(true);
         const response = await fetch("/api/models", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -53,17 +51,9 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         });
         const data = await response.json();
         setModels(data);
-        setSelectedModel(""); // Reset selected model to trigger re-render
-        setIsLoadingModels(false); // Reset loading state
-        toast.success("Models loaded successfully!", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        setSelectedModel("");
+        setIsLoadingModels(false);
+        toast.success("Models loaded successfully!");
     };
 
     const saveToHistory = (prompt: string, result: string) => {
@@ -131,104 +121,110 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <ToastContainer />
             <Collapsible
                 trigger={
-                    <span>
+                    <span className="settings-trigger">
                         Settings <span className="arrow">▼</span>
                     </span>
                 }
                 triggerClassName="settings-trigger"
                 triggerOpenedClassName="settings-trigger open"
             >
-                <div className="flex space-x-4">
-                    <input
-                        type="text"
-                        placeholder="Base URL"
-                        value={baseUrl}
-                        onChange={(e) => setBaseUrl(e.target.value)}
-                        className="border p-2 flex-1"
-                    />
-                    <input
-                        type="password"
-                        placeholder="API Key"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        className="border p-2 flex-1"
-                    />
-                    <input
-                        type="number"
-                        placeholder="Temperature"
-                        value={temperature}
-                        onChange={(e) => setTemperature(Number(e.target.value))}
-                        className="border p-2 w-24"
-                    />
-                    <input
-                        type="number"
-                        placeholder="Max Tokens"
-                        value={maxTokens}
-                        onChange={(e) => setMaxTokens(Number(e.target.value))}
-                        className="border p-2 w-24"
-                    />
-                </div>
-                <div className="flex space-x-4 mt-4">
+                <div className="collapsible-content">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                            type="text"
+                            placeholder="Base URL"
+                            value={baseUrl}
+                            onChange={(e) => setBaseUrl(e.target.value)}
+                            className="input"
+                        />
+                        <input
+                            type="password"
+                            placeholder="API Key"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            className="input"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Temperature"
+                            value={temperature}
+                            onChange={(e) =>
+                                setTemperature(Number(e.target.value))
+                            }
+                            className="input"
+                            step="0.1"
+                            min="0"
+                            max="1"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Max Tokens"
+                            value={maxTokens}
+                            onChange={(e) =>
+                                setMaxTokens(Number(e.target.value))
+                            }
+                            className="input"
+                            min="1"
+                        />
+                    </div>
                     <button
                         onClick={loadModels}
-                        className="bg-blue-500 text-white p-2 flex-1"
+                        className="btn btn-secondary mt-4 w-full"
+                        disabled={isLoadingModels}
                     >
-                        Load Models
+                        {isLoadingModels ? "Loading Models..." : "Load Models"}
                     </button>
                 </div>
             </Collapsible>
-            <div className="flex">
-                <div className="w-full p-2">
-                    <Select
-                        options={models.map((model) => ({
-                            value: model,
-                            label: model,
-                        }))}
-                        value={{ value: selectedModel, label: selectedModel }}
-                        onChange={(selectedOption) =>
-                            setSelectedModel(selectedOption?.value || "")
-                        }
-                        isClearable
-                        placeholder="Filter models..."
-                        className="mb-2"
-                    />
-                </div>
+            <div className="mb-4">
+                <Select
+                    options={models.map((model) => ({
+                        value: model,
+                        label: model,
+                    }))}
+                    value={{ value: selectedModel, label: selectedModel }}
+                    onChange={(selectedOption) =>
+                        setSelectedModel(selectedOption?.value || "")
+                    }
+                    isClearable
+                    placeholder="Select a model..."
+                    className="select"
+                />
             </div>
-            <div className="flex mt-4">
-                <div className="w-full">
-                    <textarea
-                        placeholder="Enter your prompt"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        className="border p-2 w-full h-72"
-                    />
-                </div>
+            <div className="mb-4">
+                <textarea
+                    placeholder="Enter your prompt"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="textarea w-full h-40"
+                />
             </div>
-            <div className="flex space-x-4">
-                <button
-                    onClick={handlePlay}
-                    className="bg-green-500 text-white p-2 flex-1"
-                >
-                    Play
+            <div className="mb-4">
+                <button onClick={handlePlay} className="btn btn-primary w-full">
+                    Generate
                 </button>
             </div>
-            <div className="flex">
-                <div className="w-1/5 border p-2 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-1 border rounded-lg p-4 h-96 overflow-y-auto">
+                    <h3 className="font-bold mb-2">History</h3>
                     {history.map((entry, index) => (
                         <div
                             key={index}
                             onClick={() => handleHistoryClick(entry)}
-                            className="cursor-pointer hover:bg-gray-100"
+                            className="history-item"
                         >
-                            <p>{new Date(entry.time).toLocaleString()}</p>
+                            <p className="text-sm text-gray-600">
+                                {new Date(entry.time).toLocaleString()}
+                            </p>
+                            <p className="truncate">{entry.prompt}</p>
                         </div>
                     ))}
                 </div>
-                <div className="w-4/5 border p-2 h-auto min-h-32 overflow-x-auto">
+                <div className="md:col-span-3 border rounded-lg p-4 h-96 overflow-y-auto">
                     <ReactMarkdown
                         className="markdown-body"
                         remarkPlugins={[remarkGfm]}
@@ -254,20 +250,11 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                             text={text}
                                             onCopy={() =>
                                                 toast.success(
-                                                    "Code copied successfully!",
-                                                    {
-                                                        position: "top-right",
-                                                        autoClose: 3000,
-                                                        hideProgressBar: false,
-                                                        closeOnClick: true,
-                                                        pauseOnHover: true,
-                                                        draggable: true,
-                                                        progress: undefined,
-                                                    }
+                                                    "Code copied successfully!"
                                                 )
                                             }
                                         >
-                                            <button className="absolute top-2 right-2 bg-gray-200 p-1 rounded">
+                                            <button className="absolute top-2 right-2 bg-gray-200 p-1 rounded text-sm">
                                                 Copy
                                             </button>
                                         </CopyToClipboard>

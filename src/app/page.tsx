@@ -8,8 +8,17 @@ export default function Home() {
 
     return (
         <main className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">LLM Playground</h1>
-            <PlaygroundForm setResult={setResult} />
+            <header className="mb-8 text-center">
+                <h1 className="text-4xl font-bold text-primary-color mb-2">
+                    LLM Playground
+                </h1>
+                <p className="text-lg text-gray-600">
+                    Explore and experiment with language models
+                </p>
+            </header>
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <PlaygroundForm setResult={setResult} />
+            </div>
         </main>
     );
 }
