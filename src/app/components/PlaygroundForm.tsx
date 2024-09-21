@@ -606,11 +606,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                         ""
                                     );
                                     const hasLanguageIdentifier =
-                                        className?.includes("language-");
+                                        className?.includes("language-") ||
+                                        false;
                                     const isHtml =
-                                        className?.includes("language-html");
+                                        className?.includes("language-html") ||
+                                        false;
                                     const isSvg =
-                                        className?.includes("language-svg");
+                                        className?.includes("language-svg") ||
+                                        false;
                                     return hasLanguageIdentifier ? (
                                         <div className="relative">
                                             <pre className={className}>
