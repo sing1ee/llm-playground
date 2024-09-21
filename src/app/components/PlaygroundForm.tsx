@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MarkdownStyles.css";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
@@ -23,6 +24,7 @@ interface Settings {
     model: string;
     systemPrompt: string;
     useSystemPrompt: boolean;
+    systemPromptType: string;
 }
 
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
@@ -41,6 +43,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         model: "",
         systemPrompt: "",
         useSystemPrompt: false,
+        systemPromptType: "",
     });
 
     useEffect(() => {
@@ -175,6 +178,38 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         }
     };
 
+    const handleSystemPromptTypeChange = (value: string) => {
+        let systemPrompt = "";
+        switch (value) {
+            case "测字大师":
+                systemPrompt = `"你是一个测字大师，擅长解读汉字的含义和寓意。"`;
+                break;
+            case "艺术字体":
+                systemPrompt =
+                    "你是一个艺术字体设计师，擅长创造独特的字体设计。";
+                break;
+            case "方法论":
+                systemPrompt =
+                    "你是一个方法论专家，擅长提供系统化的问题解决方案。";
+                break;
+        }
+        setSettings((prev) => ({
+            ...prev,
+            systemPromptType: value,
+            systemPrompt,
+            useSystemPrompt: true,
+        }));
+        localStorage.setItem(
+            "playgroundSettings",
+            JSON.stringify({
+                ...settings,
+                systemPromptType: value,
+                systemPrompt,
+                useSystemPrompt: true,
+            })
+        );
+    };
+
     const saveSettings = () => {
         localStorage.setItem("playgroundSettings", JSON.stringify(settings));
         toast.success("Settings saved successfully!");
@@ -227,6 +262,22 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 <h1 className="text-3xl font-bold text-primary">
                     AI Playground
                 </h1>
+                <div className="mb-4">
+                    <ToggleGroup
+                        type="single"
+                        value={settings.systemPromptType}
+                        onValueChange={handleSystemPromptTypeChange}
+                        className="justify-start"
+                    >
+                        <ToggleGroupItem value="测字大师">
+                            测字大师
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="艺术字体">
+                            艺术字体
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="方法论">方法论</ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
                 <div className="mb-4">
                     <textarea
                         placeholder="Enter your prompt here..."

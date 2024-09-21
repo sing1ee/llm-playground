@@ -9,8 +9,11 @@ const OUTPUT_COST_PER_1K = 0.002;
 export async function POST(request: Request) {
     let { baseUrl, apiKey, model, prompt, systemPrompt, maxTokens, temperature } = await request.json()
     if (!baseUrl) baseUrl = 'https://api.siliconflow.cn/v1';
-    if (!apiKey) apiKey = 'sk-xapavxiazxgkjhhmqgqyoeyskdfmrmosqqzknmhixcgdqpli';
     if (!model) model = 'Qwen/Qwen2-7B-Instruct';
+
+    if (!apiKey) {
+        return NextResponse.json({ error: 'API key is required' }, { status: 400 });
+    }
 
     const configuration: ClientOptions = {
         apiKey: apiKey,
@@ -20,10 +23,9 @@ export async function POST(request: Request) {
 
     const messages: ChatCompletionMessageParam[] = [];
     if (systemPrompt) {
-        messages.push({ role: 'system', content: systemPrompt as '' });
+        messages.push({ role: 'system', content: systemPrompt });
     }
     messages.push({ role: 'user', content: prompt });
-
     const stream = await openai.chat.completions.create({
         model: model,
         messages: messages,
@@ -63,7 +65,8 @@ export async function POST(request: Request) {
                         const text = chunk.choices[0].delta.content;
                         if (typeof text === 'string') {
                             controller.enqueue(encoder.encode(text));
-                            totalOutputTokens += text.split(' ').length; // Rough estimate of token count
+                            // More accurate token estimation
+                            totalOutputTokens += text.trim().split(/\s+/).length;
                         }
                     } catch (error) {
                         console.error('Error parsing stream message', error);
