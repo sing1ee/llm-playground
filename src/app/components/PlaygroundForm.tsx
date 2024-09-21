@@ -1,39 +1,29 @@
 import { useState, useEffect } from "react";
-import Select from "react-select";
 import ReactMarkdown from "react-markdown";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import remarkGfm from "remark-gfm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MarkdownStyles.css";
-import Collapsible from "react-collapsible";
 
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
 }
 
+interface TokenInfo {
+    inputTokens: number;
+    outputTokens: number;
+    totalCost: number;
+}
+
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
-    const [baseUrl, setBaseUrl] = useState("");
-    const [apiKey, setApiKey] = useState("");
-    const [temperature, setTemperature] = useState(0.7);
-    const [maxTokens, setMaxTokens] = useState(4000);
-    const [models, setModels] = useState<string[]>([]);
-    const [selectedModel, setSelectedModel] = useState("");
     const [prompt, setPrompt] = useState("");
     const [result, setLocalResult] = useState("");
     const [history, setHistory] = useState<
-        {
-            time: string;
-            prompt: string;
-            result: string;
-            baseUrl: string;
-            apiKey: string;
-            temperature: number;
-            maxTokens: number;
-            selectedModel: string;
-        }[]
+        { time: string; prompt: string; result: string; tokenInfo: TokenInfo }[]
     >([]);
-    const [isLoadingModels, setIsLoadingModels] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -42,30 +32,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         }
     }, []);
 
-    const loadModels = async () => {
-        setIsLoadingModels(true);
-        const response = await fetch("/api/models", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ baseUrl, apiKey }),
-        });
-        const data = await response.json();
-        setModels(data);
-        setSelectedModel("");
-        setIsLoadingModels(false);
-        toast.success("Models loaded successfully!");
-    };
-
-    const saveToHistory = (prompt: string, result: string) => {
+    const saveToHistory = (
+        prompt: string,
+        result: string,
+        tokenInfo: TokenInfo
+    ) => {
         const newEntry = {
             time: new Date().toISOString(),
             prompt,
             result,
-            baseUrl,
-            apiKey,
-            temperature,
-            maxTokens,
-            selectedModel,
+            tokenInfo,
         };
         const updatedHistory = [newEntry, ...history.slice(0, 99)];
         setHistory(updatedHistory);
@@ -75,141 +51,86 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         );
     };
 
-    const handlePlay = async () => {
-        const response = await fetch("/api/completion", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                baseUrl,
-                apiKey,
-                model: selectedModel,
-                prompt,
-                maxTokens,
-                temperature,
-            }),
-        });
+    const handleGenerate = async () => {
+        setIsGenerating(true);
+        setTokenInfo(null);
+        try {
+            const response = await fetch("/api/completion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt }),
+            });
 
-        const reader = response.body?.getReader();
-        let result = "";
+            const reader = response.body?.getReader();
+            let result = "";
 
-        while (true) {
-            const { done, value } = await reader!.read();
-            if (done) break;
-            result += new TextDecoder().decode(value);
-            setLocalResult(result);
+            while (true) {
+                const { done, value } = await reader!.read();
+                if (done) break;
+                result += new TextDecoder().decode(value);
+                setLocalResult(result);
+            }
+
+            // Assume the last line of the response contains the token info
+            const lines = result.split("\n");
+            const tokenInfoLine = lines.pop();
+            const tokenInfo = JSON.parse(tokenInfoLine || "{}");
+            setTokenInfo(tokenInfo);
+
+            const actualResult = lines.join("\n");
+            saveToHistory(prompt, actualResult, tokenInfo);
+            setLocalResult(actualResult);
+            setResult(actualResult);
+        } catch (error) {
+            console.error("Error generating response:", error);
+            toast.error(
+                "An error occurred while generating the response. Please try again."
+            );
+        } finally {
+            setIsGenerating(false);
         }
-        saveToHistory(prompt, result);
-        setResult(result);
     };
 
     const handleHistoryClick = (entry: {
         prompt: string;
         result: string;
-        baseUrl: string;
-        apiKey: string;
-        temperature: number;
-        maxTokens: number;
-        selectedModel: string;
+        tokenInfo: TokenInfo;
     }) => {
         setPrompt(entry.prompt);
         setLocalResult(entry.result);
-        setBaseUrl(entry.baseUrl);
-        setApiKey(entry.apiKey);
-        setTemperature(entry.temperature);
-        setMaxTokens(entry.maxTokens);
-        setSelectedModel(entry.selectedModel);
+        setTokenInfo(entry.tokenInfo);
     };
 
     return (
         <div className="space-y-6">
             <ToastContainer />
-            <Collapsible
-                trigger={
-                    <span className="settings-trigger">
-                        Settings <span className="arrow">▼</span>
-                    </span>
-                }
-                triggerClassName="settings-trigger"
-                triggerOpenedClassName="settings-trigger open"
-            >
-                <div className="collapsible-content">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input
-                            type="text"
-                            placeholder="Base URL"
-                            value={baseUrl}
-                            onChange={(e) => setBaseUrl(e.target.value)}
-                            className="input"
-                        />
-                        <input
-                            type="password"
-                            placeholder="API Key"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            className="input"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Temperature"
-                            value={temperature}
-                            onChange={(e) =>
-                                setTemperature(Number(e.target.value))
-                            }
-                            className="input"
-                            step="0.1"
-                            min="0"
-                            max="1"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max Tokens"
-                            value={maxTokens}
-                            onChange={(e) =>
-                                setMaxTokens(Number(e.target.value))
-                            }
-                            className="input"
-                            min="1"
-                        />
-                    </div>
-                    <button
-                        onClick={loadModels}
-                        className="btn btn-secondary mt-4 w-full"
-                        disabled={isLoadingModels}
-                    >
-                        {isLoadingModels ? "Loading Models..." : "Load Models"}
-                    </button>
-                </div>
-            </Collapsible>
-            <div className="mb-4">
-                <Select
-                    options={models.map((model) => ({
-                        value: model,
-                        label: model,
-                    }))}
-                    value={{ value: selectedModel, label: selectedModel }}
-                    onChange={(selectedOption) =>
-                        setSelectedModel(selectedOption?.value || "")
-                    }
-                    isClearable
-                    placeholder="Select a model..."
-                    className="select"
-                />
-            </div>
             <div className="mb-4">
                 <textarea
-                    placeholder="Enter your prompt"
+                    placeholder="Enter your prompt here..."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="textarea w-full h-100"
+                    className="textarea w-full h-40"
                 />
             </div>
             <div className="mb-4">
-                <button onClick={handlePlay} className="btn btn-primary w-full">
-                    Generate
+                <button
+                    onClick={handleGenerate}
+                    className="btn btn-primary w-full"
+                    disabled={isGenerating}
+                >
+                    {isGenerating ? "Generating..." : "Generate"}
                 </button>
             </div>
+            {tokenInfo && (
+                <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+                    <h3 className="font-bold mb-2">Token Consumption:</h3>
+                    <p>Input Tokens: {tokenInfo.inputTokens}</p>
+                    <p>Output Tokens: {tokenInfo.outputTokens}</p>
+                    <p>Total Cost: ${tokenInfo.totalCost.toFixed(4)}</p>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-1 border rounded-lg p-4">
+                <div className="md:col-span-1 border rounded-lg p-4 h-96 overflow-y-auto">
                     <h3 className="font-bold mb-2">History</h3>
                     {history.map((entry, index) => (
                         <div
@@ -221,10 +142,13 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                 {new Date(entry.time).toLocaleString()}
                             </p>
                             <p className="truncate">{entry.prompt}</p>
+                            <p className="text-xs text-gray-500">
+                                Cost: ${entry.tokenInfo?.totalCost?.toFixed(4)}
+                            </p>
                         </div>
                     ))}
                 </div>
-                <div className="md:col-span-3 border rounded-lg p-4">
+                <div className="md:col-span-3 border rounded-lg p-4 h-96 overflow-y-auto">
                     <ReactMarkdown
                         className="markdown-body"
                         remarkPlugins={[remarkGfm]}

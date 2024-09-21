@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { ClientOptions, OpenAI } from 'openai'
 
+// Cost per 1000 tokens (you may need to adjust these values based on the actual pricing)
+const INPUT_COST_PER_1K = 0.0015;
+const OUTPUT_COST_PER_1K = 0.002;
+
 export async function POST(request: Request) {
     let { baseUrl, apiKey, model, prompt, maxTokens, temperature } = await request.json()
     if (!baseUrl) baseUrl = 'https://api.siliconflow.cn/v1';
@@ -22,25 +26,46 @@ export async function POST(request: Request) {
     })
 
     const encoder = new TextEncoder()
+    let totalOutputTokens = 0;
 
-    return new NextResponse(
+    const response = new NextResponse(
         new ReadableStream({
             async start(controller) {
                 for await (const chunk of stream) {
                     if (chunk.choices[0].finish_reason != null) {
-                        controller.close()
-                        return
+                        // Calculate token usage and cost
+                        const inputTokens = chunk.usage?.prompt_tokens || 0;
+                        const outputTokens = chunk.usage?.completion_tokens || totalOutputTokens;
+                        const totalTokens = inputTokens + outputTokens;
+                        const inputCost = (inputTokens / 1000) * INPUT_COST_PER_1K;
+                        const outputCost = (outputTokens / 1000) * OUTPUT_COST_PER_1K;
+                        const totalCost = inputCost + outputCost;
+
+                        const tokenInfo = JSON.stringify({
+                            inputTokens,
+                            outputTokens,
+                            totalTokens,
+                            totalCost
+                        });
+
+                        controller.enqueue(encoder.encode(`\n${tokenInfo}`));
+                        controller.close();
+                        return;
                     }
                     try {
-                        const text = chunk.choices[0].delta.content
+                        const text = chunk.choices[0].delta.content;
                         if (typeof text === 'string') {
-                            controller.enqueue(encoder.encode(text))
+                            controller.enqueue(encoder.encode(text));
+                            totalOutputTokens += text.split(' ').length; // Rough estimate of token count
                         }
                     } catch (error) {
-                        console.error('Error parsing stream message', error)
+                        console.error('Error parsing stream message', error);
                     }
                 }
             },
         })
-    )
+    );
+
+    response.headers.set('Content-Type', 'text/plain; charset=utf-8');
+    return response;
 }
