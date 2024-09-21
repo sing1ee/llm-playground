@@ -77,7 +77,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
             maxTokens,
             selectedModel,
         };
-        console.log(newEntry);
         const updatedHistory = [newEntry, ...history.slice(0, 99)];
         setHistory(updatedHistory);
         localStorage.setItem(
@@ -122,7 +121,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         maxTokens: number;
         selectedModel: string;
     }) => {
-        console.log(entry);
         setPrompt(entry.prompt);
         setLocalResult(entry.result);
         setBaseUrl(entry.baseUrl);
