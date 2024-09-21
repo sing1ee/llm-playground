@@ -193,29 +193,19 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
     const handleSystemPromptTypeChange = (value: string) => {
         let systemPrompt = "";
-        const selectedRole = roles.find((role) => role.name === value);
-        if (selectedRole) {
-            systemPrompt = selectedRole.systemPrompt;
-        } else {
-            switch (value) {
-                case "测字大师":
-                    systemPrompt = `"你是一个测字大师，擅长解读汉字的含义和寓意。"`;
-                    break;
-                case "艺术字体":
-                    systemPrompt =
-                        "你是一个艺术字体设计师，擅长创造独特的字体设计。";
-                    break;
-                case "方法论":
-                    systemPrompt =
-                        "你是一个方法论专家，擅长提供系统化的问题解决方案。";
-                    break;
+        let use: boolean = false;
+        if (value) {
+            const selectedRole = roles.find((role) => role.name === value);
+            if (selectedRole) {
+                systemPrompt = selectedRole.systemPrompt;
+                use = true;
             }
         }
         setSettings((prev) => ({
             ...prev,
             systemPromptType: value,
             systemPrompt,
-            useSystemPrompt: true,
+            useSystemPrompt: use,
         }));
         localStorage.setItem(
             "playgroundSettings",
@@ -223,7 +213,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 ...settings,
                 systemPromptType: value,
                 systemPrompt,
-                useSystemPrompt: true,
+                useSystemPrompt: use,
             })
         );
     };
