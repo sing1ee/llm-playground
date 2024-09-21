@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { ClientOptions, OpenAI } from 'openai'
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions.mjs';
 
 // Cost per 1000 tokens (you may need to adjust these values based on the actual pricing)
 const INPUT_COST_PER_1K = 0.0015;
 const OUTPUT_COST_PER_1K = 0.002;
 
 export async function POST(request: Request) {
-    let { baseUrl, apiKey, model, prompt, maxTokens, temperature } = await request.json()
+    let { baseUrl, apiKey, model, prompt, systemPrompt, maxTokens, temperature } = await request.json()
     if (!baseUrl) baseUrl = 'https://api.siliconflow.cn/v1';
     if (!apiKey) apiKey = 'sk-xapavxiazxgkjhhmqgqyoeyskdfmrmosqqzknmhixcgdqpli';
     if (!model) model = 'Qwen/Qwen2-7B-Instruct';
@@ -17,9 +18,15 @@ export async function POST(request: Request) {
     }
     const openai = new OpenAI(configuration)
 
+    const messages: ChatCompletionMessageParam[] = [];
+    if (systemPrompt) {
+        messages.push({ role: 'system', content: systemPrompt as '' });
+    }
+    messages.push({ role: 'user', content: prompt });
+
     const stream = await openai.chat.completions.create({
         model: model,
-        messages: [{ role: 'user', content: prompt }],
+        messages: messages,
         max_tokens: maxTokens,
         temperature: temperature,
         stream: true,
