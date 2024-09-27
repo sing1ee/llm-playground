@@ -14,6 +14,7 @@ import {
     SandpackCodeEditor,
 } from "@codesandbox/sandpack-react";
 import { cyberpunk } from "@codesandbox/sandpack-themes";
+import { truncate } from "fs";
 
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
@@ -626,11 +627,11 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                     wrapContent
                                     closableTabs
                                 />
-                                <div className="rounded-b-lg bg-zinc-900 p-4">
-                                    <div className="overflow-hidden rounded bg-white p-1">
+                                <div className="rounded-b-lg bg-zinc-900 p-4 h-auto">
+                                    <div className="overflow-auto rounded bg-white p-1">
                                         <SandpackPreview
                                             showOpenInCodeSandbox={false}
-                                            showRefreshButton={false}
+                                            showRefreshButton={true}
                                         />
                                     </div>
                                 </div>
