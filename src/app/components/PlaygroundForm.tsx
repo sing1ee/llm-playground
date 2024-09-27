@@ -612,13 +612,13 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     </div>
                 )}
                 {showSandbox && (
-                    <div className="mb-4 p-4 bg-opacity-10">
+                    <div className="mb-4 bg-opacity-10">
                         <SandpackProvider
                             files={runFiles}
                             theme={cyberpunk}
                             template="react"
                         >
-                            <SandpackLayout>
+                            <SandpackLayout className="!block !rounded-none sm:!rounded-lg !-mx-4 sm:!mx-0">
                                 <SandpackCodeEditor
                                     showTabs
                                     showLineNumbers={false}
@@ -626,7 +626,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                     wrapContent
                                     closableTabs
                                 />
-                                <SandpackPreview />
+                                <div className="rounded-b-lg bg-zinc-900 p-4">
+                                    <div className="overflow-hidden rounded bg-white p-1">
+                                        <SandpackPreview
+                                            showOpenInCodeSandbox={false}
+                                            showRefreshButton={false}
+                                        />
+                                    </div>
+                                </div>
                             </SandpackLayout>
                         </SandpackProvider>
                     </div>
