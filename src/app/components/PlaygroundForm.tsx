@@ -14,35 +14,14 @@ import {
     SandpackCodeEditor,
 } from "@codesandbox/sandpack-react";
 import { cyberpunk } from "@codesandbox/sandpack-themes";
-import { truncate } from "fs";
-
-interface PlaygroundFormProps {
-    setResult: (result: string) => void;
-}
-
-interface TokenInfo {
-    inputTokens: number;
-    outputTokens: number;
-    totalCost: number;
-}
-
-interface Files {
-    [key: string]: string;
-}
-
-interface Settings {
-    apiKey: string;
-    baseUrl: string;
-    model: string;
-    systemPrompt: string;
-    useSystemPrompt: boolean;
-    systemPromptType: string;
-}
-
-interface Role {
-    name: string;
-    systemPrompt: string;
-}
+import FullScreenButton from "./FullScreenButton";
+import {
+    PlaygroundFormProps,
+    TokenInfo,
+    Files,
+    Settings,
+    Role,
+} from "../lib/types";
 
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [prompt, setPrompt] = useState("");
@@ -170,7 +149,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
     const extractCodeBlocks = () => {
         const files: Files = {};
-        console.log(result);
         const cssCodeBlocks = result.match(/```css([\s\S]*?)```/g);
         const jsxCodeBlocks = result.match(/```jsx([\s\S]*?)```/g);
         console.log(cssCodeBlocks, jsxCodeBlocks);
@@ -188,10 +166,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         setRunFiles(files);
         setShowSandbox(true);
     };
-
-    useEffect(() => {
-        console.log("Extracted code blocks:", runFiles);
-    }, [runFiles]);
 
     const handleRenderContent = (content: string, isSvg: boolean) => {
         if (isSvg) {
@@ -314,46 +288,10 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     return (
         <div className={`relative ${isFullScreen ? "full-screen" : ""}`}>
             <ToastContainer />
-            <button
-                onClick={toggleFullScreen}
-                className="absolute top-4 right-4 p-2 bg-secondary rounded-full hover:bg-accent transition-colors"
-                aria-label={
-                    isFullScreen ? "Exit full screen" : "Enter full screen"
-                }
-                title={isFullScreen ? "Exit full screen" : "Enter full screen"}
-            >
-                {isFullScreen ? (
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 9V4.5M9 9H4.5M15 9H19.5M15 9V4.5M15 20.25V15M15 20.25H19.5M9 20.25H4.5M9 20.25V15"
-                        />
-                    </svg>
-                ) : (
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                        />
-                    </svg>
-                )}
-            </button>
+            <FullScreenButton
+                isFullScreen={isFullScreen}
+                toggleFullScreen={toggleFullScreen}
+            />
             <div className="space-y-6 p-8">
                 <h1 className="text-3xl font-bold text-primary">
                     AI Playground
