@@ -22,6 +22,15 @@ import {
     Settings,
     Role,
 } from "../lib/types";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [prompt, setPrompt] = useState("");
@@ -45,7 +54,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [newRoleName, setNewRoleName] = useState("");
     const [newRoleSystemPrompt, setNewRoleSystemPrompt] = useState("");
     const [runFiles, setRunFiles] = useState({});
-    const [showSandbox, setShowSandbox] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const handleDialogOpen = () => {
+        setIsDialogOpen(true);
+        extractCodeBlocks();
+    };
+
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+    };
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -151,7 +169,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
         const files: Files = {};
         const cssCodeBlocks = result.match(/```css([\s\S]*?)```/g);
         const jsxCodeBlocks = result.match(/```jsx([\s\S]*?)```/g);
-        console.log(cssCodeBlocks, jsxCodeBlocks);
         if (cssCodeBlocks) {
             files["/styles.css"] = cssCodeBlocks
                 .map((block) => block.replace(/```css|```/g, ""))
@@ -164,8 +181,12 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 .join("\n");
         }
         setRunFiles(files);
-        setShowSandbox(true);
+        handleDialogOpen();
     };
+
+    useEffect(() => {
+        console.log(runFiles);
+    }, [runFiles]);
 
     const handleRenderContent = (content: string, isSvg: boolean) => {
         if (isSvg) {
@@ -550,37 +571,10 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                         <p>Total Cost: ${tokenInfo.totalCost.toFixed(4)}</p>
                     </div>
                 )}
-                {showSandbox && (
-                    <div className="mb-4 bg-opacity-10">
-                        <SandpackProvider
-                            files={runFiles}
-                            theme={cyberpunk}
-                            template="react"
-                        >
-                            <SandpackLayout className="!block !rounded-none sm:!rounded-lg !-mx-4 sm:!mx-0">
-                                <SandpackCodeEditor
-                                    showTabs
-                                    showLineNumbers={false}
-                                    showInlineErrors
-                                    wrapContent
-                                    closableTabs
-                                />
-                                <div className="rounded-b-lg bg-zinc-900 p-4 h-auto">
-                                    <div className="overflow-auto rounded bg-white p-1">
-                                        <SandpackPreview
-                                            showOpenInCodeSandbox={false}
-                                            showRefreshButton={true}
-                                        />
-                                    </div>
-                                </div>
-                            </SandpackLayout>
-                        </SandpackProvider>
-                    </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-1 border border-primary rounded-lg p-4 bg-white shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    <div className="lg:w-1/4 border border-primary rounded-lg p-4 bg-white shadow-sm">
                         <h3 className="font-bold mb-2 text-primary">History</h3>
-                        <div>
+                        <div className="overflow-y-auto">
                             {history.map((entry, index) => (
                                 <div
                                     key={index}
@@ -599,101 +593,183 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                             ))}
                         </div>
                     </div>
-                    <div className="md:col-span-3 border border-primary rounded-lg p-4 bg-white shadow-sm">
-                        <ReactMarkdown
-                            className="markdown-body"
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                                code({ node, className, children, ...props }) {
-                                    const text = String(children).replace(
-                                        /\n$/,
-                                        ""
-                                    );
-                                    const hasLanguageIdentifier =
-                                        className?.includes("language-") ||
-                                        false;
-                                    const isHtml =
-                                        className?.includes("language-html") ||
-                                        false;
-                                    const isSvg =
-                                        className?.includes("language-svg") ||
-                                        false;
-                                    const isJsx =
-                                        className?.includes("language-jsx") ||
-                                        false;
-                                    return hasLanguageIdentifier ? (
-                                        <div className="relative">
-                                            <pre className={className}>
+                    <div className="lg:w-3/4 border border-primary rounded-lg p-4 bg-white shadow-sm">
+                        <div className="flex flex-col lg:flex-row gap-4">
+                            <div className={`w-full overflow-auto`}>
+                                <ReactMarkdown
+                                    className="markdown-body"
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        code({
+                                            node,
+                                            className,
+                                            children,
+                                            ...props
+                                        }) {
+                                            const text = String(
+                                                children
+                                            ).replace(/\n$/, "");
+                                            const hasLanguageIdentifier =
+                                                className?.includes(
+                                                    "language-"
+                                                ) || false;
+                                            const isHtml =
+                                                className?.includes(
+                                                    "language-html"
+                                                ) || false;
+                                            const isSvg =
+                                                className?.includes(
+                                                    "language-svg"
+                                                ) || false;
+                                            const isJsx =
+                                                className?.includes(
+                                                    "language-jsx"
+                                                ) || false;
+                                            return hasLanguageIdentifier ? (
+                                                <div className="relative">
+                                                    <pre className={className}>
+                                                        <code
+                                                            className={
+                                                                className
+                                                            }
+                                                            {...props}
+                                                        >
+                                                            {children}
+                                                        </code>
+                                                    </pre>
+                                                    <div className="absolute top-2 right-2 flex space-x-2">
+                                                        <CopyToClipboard
+                                                            text={text}
+                                                            onCopy={() =>
+                                                                toast.success(
+                                                                    "Code copied successfully!"
+                                                                )
+                                                            }
+                                                        >
+                                                            <button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                                                                Copy
+                                                            </button>
+                                                        </CopyToClipboard>
+                                                        {(isHtml || isSvg) && (
+                                                            <Popover>
+                                                                <PopoverTrigger
+                                                                    asChild
+                                                                >
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleRenderContent(
+                                                                                text,
+                                                                                isSvg
+                                                                            )
+                                                                        }
+                                                                        className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                                                                    >
+                                                                        Render
+                                                                    </button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-[800px] h-[600px] p-0">
+                                                                    <div className="w-full h-full overflow-auto">
+                                                                        <iframe
+                                                                            srcDoc={
+                                                                                popoverContent
+                                                                            }
+                                                                            className="w-full h-full border-none"
+                                                                            title="Rendered Content"
+                                                                        />
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
+                                                        {isJsx && (
+                                                            <Dialog
+                                                                open={
+                                                                    isDialogOpen
+                                                                }
+                                                                onOpenChange={
+                                                                    handleDialogClose
+                                                                }
+                                                            >
+                                                                <DialogTrigger
+                                                                    asChild
+                                                                >
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        onClick={() =>
+                                                                            extractCodeBlocks()
+                                                                        }
+                                                                        className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                                                                    >
+                                                                        Run
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-[1000px]">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>
+                                                                            Run
+                                                                            Code
+                                                                        </DialogTitle>
+                                                                        <DialogDescription>
+                                                                            Run
+                                                                            Code
+                                                                            like
+                                                                            Artifact
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
+                                                                    <div className="w-Full">
+                                                                        <SandpackProvider
+                                                                            files={
+                                                                                runFiles
+                                                                            }
+                                                                            theme={
+                                                                                cyberpunk
+                                                                            }
+                                                                            template="react"
+                                                                        >
+                                                                            <SandpackLayout className="!block !rounded-none sm:!rounded-lg !-mx-4 sm:!mx-0">
+                                                                                <SandpackCodeEditor
+                                                                                    showTabs
+                                                                                    showLineNumbers={
+                                                                                        false
+                                                                                    }
+                                                                                    showInlineErrors
+                                                                                    wrapContent
+                                                                                    closableTabs
+                                                                                />
+                                                                                <div className="rounded-b-lg bg-zinc-900 p-4 h-auto">
+                                                                                    <div className="overflow-auto rounded bg-white p-1">
+                                                                                        <SandpackPreview
+                                                                                            showOpenInCodeSandbox={
+                                                                                                false
+                                                                                            }
+                                                                                            showRefreshButton={
+                                                                                                true
+                                                                                            }
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
+                                                                            </SandpackLayout>
+                                                                        </SandpackProvider>
+                                                                    </div>
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
                                                 <code
                                                     className={className}
                                                     {...props}
                                                 >
                                                     {children}
                                                 </code>
-                                            </pre>
-                                            <div className="absolute top-2 right-2 flex space-x-2">
-                                                <CopyToClipboard
-                                                    text={text}
-                                                    onCopy={() =>
-                                                        toast.success(
-                                                            "Code copied successfully!"
-                                                        )
-                                                    }
-                                                >
-                                                    <button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
-                                                        Copy
-                                                    </button>
-                                                </CopyToClipboard>
-                                                {(isHtml || isSvg) && (
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleRenderContent(
-                                                                        text,
-                                                                        isSvg
-                                                                    )
-                                                                }
-                                                                className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
-                                                            >
-                                                                Render
-                                                            </button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-[800px] h-[600px] p-0">
-                                                            <div className="w-full h-full overflow-auto">
-                                                                <iframe
-                                                                    srcDoc={
-                                                                        popoverContent
-                                                                    }
-                                                                    className="w-full h-full border-none"
-                                                                    title="Rendered Content"
-                                                                />
-                                                            </div>
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                )}
-                                                {isJsx && (
-                                                    <button
-                                                        onClick={() =>
-                                                            extractCodeBlocks()
-                                                        }
-                                                        className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
-                                                    >
-                                                        Run
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <code className={className} {...props}>
-                                            {children}
-                                        </code>
-                                    );
-                                },
-                            }}
-                        >
-                            {result}
-                        </ReactMarkdown>
+                                            );
+                                        },
+                                    }}
+                                >
+                                    {result}
+                                </ReactMarkdown>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
