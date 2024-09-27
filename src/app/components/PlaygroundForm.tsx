@@ -7,6 +7,13 @@ import "react-toastify/dist/ReactToastify.css";
 import "./MarkdownStyles.css";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import {
+    SandpackLayout,
+    SandpackProvider,
+    SandpackPreview,
+    SandpackCodeEditor,
+} from "@codesandbox/sandpack-react";
+import { cyberpunk } from "@codesandbox/sandpack-themes";
 
 interface PlaygroundFormProps {
     setResult: (result: string) => void;
@@ -16,6 +23,10 @@ interface TokenInfo {
     inputTokens: number;
     outputTokens: number;
     totalCost: number;
+}
+
+interface Files {
+    [key: string]: string;
 }
 
 interface Settings {
@@ -53,6 +64,8 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const [roles, setRoles] = useState<Role[]>([]);
     const [newRoleName, setNewRoleName] = useState("");
     const [newRoleSystemPrompt, setNewRoleSystemPrompt] = useState("");
+    const [runFiles, setRunFiles] = useState({});
+    const [showSandbox, setShowSandbox] = useState(false);
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("playgroundHistory");
@@ -153,6 +166,31 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const toggleFullScreen = () => {
         setIsFullScreen(!isFullScreen);
     };
+
+    const extractCodeBlocks = () => {
+        const files: Files = {};
+        console.log(result);
+        const cssCodeBlocks = result.match(/```css([\s\S]*?)```/g);
+        const jsxCodeBlocks = result.match(/```jsx([\s\S]*?)```/g);
+        console.log(cssCodeBlocks, jsxCodeBlocks);
+        if (cssCodeBlocks) {
+            files["/styles.css"] = cssCodeBlocks
+                .map((block) => block.replace(/```css|```/g, ""))
+                .join("\n");
+        }
+
+        if (jsxCodeBlocks) {
+            files["/App.js"] = jsxCodeBlocks
+                .map((block) => block.replace(/```jsx|```/g, ""))
+                .join("\n");
+        }
+        setRunFiles(files);
+        setShowSandbox(true);
+    };
+
+    useEffect(() => {
+        console.log("Extracted code blocks:", runFiles);
+    }, [runFiles]);
 
     const handleRenderContent = (content: string, isSvg: boolean) => {
         if (isSvg) {
@@ -573,6 +611,26 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                         <p>Total Cost: ${tokenInfo.totalCost.toFixed(4)}</p>
                     </div>
                 )}
+                {showSandbox && (
+                    <div className="mb-4 p-4 bg-opacity-10">
+                        <SandpackProvider
+                            files={runFiles}
+                            theme={cyberpunk}
+                            template="react"
+                        >
+                            <SandpackLayout>
+                                <SandpackCodeEditor
+                                    showTabs
+                                    showLineNumbers={false}
+                                    showInlineErrors
+                                    wrapContent
+                                    closableTabs
+                                />
+                                <SandpackPreview />
+                            </SandpackLayout>
+                        </SandpackProvider>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-1 border border-primary rounded-lg p-4 bg-white shadow-sm">
                         <h3 className="font-bold mb-2 text-primary">History</h3>
@@ -613,6 +671,9 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                         false;
                                     const isSvg =
                                         className?.includes("language-svg") ||
+                                        false;
+                                    const isJsx =
+                                        className?.includes("language-jsx") ||
                                         false;
                                     return hasLanguageIdentifier ? (
                                         <div className="relative">
@@ -664,6 +725,16 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                                             </div>
                                                         </PopoverContent>
                                                     </Popover>
+                                                )}
+                                                {isJsx && (
+                                                    <button
+                                                        onClick={() =>
+                                                            extractCodeBlocks()
+                                                        }
+                                                        className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                                                    >
+                                                        Run
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
