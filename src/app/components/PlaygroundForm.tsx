@@ -630,12 +630,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                   <DialogTrigger asChild>
                                     <Button variant="outline">Run</Button>
                                   </DialogTrigger>
-                                  <DialogContent className="sm:max-w-md">
+                                  <DialogContent
+                                    style={{ height: '900px' }}
+                                    className="max-w-screen h-screen"
+                                  >
                                     <DialogHeader>
-                                      <DialogTitle>Share link</DialogTitle>
+                                      <DialogTitle>Run Code</DialogTitle>
                                       <DialogDescription>
-                                        Anyone who has this link will be able to
-                                        view this.
+                                        Run Code like Claude
                                       </DialogDescription>
                                     </DialogHeader>
                                     <SandpackProvider
@@ -643,22 +645,20 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                       theme={cyberpunk}
                                       template="react"
                                     >
-                                      <SandpackLayout className="!block !rounded-none sm:!rounded-lg !-mx-4 sm:!mx-0">
+                                      <SandpackLayout>
                                         <SandpackCodeEditor
+                                          style={{ height: '800px' }}
                                           showTabs
                                           showLineNumbers={false}
                                           showInlineErrors
                                           wrapContent
                                           closableTabs
                                         />
-                                        <div className="rounded-b-lg bg-zinc-900 p-4 h-auto">
-                                          <div className="overflow-auto rounded bg-white p-1">
-                                            <SandpackPreview
-                                              showOpenInCodeSandbox={false}
-                                              showRefreshButton={true}
-                                            />
-                                          </div>
-                                        </div>
+                                        <SandpackPreview
+                                          style={{ height: '800px' }}
+                                          showOpenInCodeSandbox={false}
+                                          showRefreshButton={true}
+                                        />
                                       </SandpackLayout>
                                     </SandpackProvider>
                                   </DialogContent>
