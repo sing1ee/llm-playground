@@ -181,7 +181,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                 .join("\n");
         }
         setRunFiles(files);
-        handleDialogOpen();
     };
 
     useEffect(() => {
@@ -694,8 +693,8 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                                                 >
                                                                     <Button
                                                                         variant="outline"
-                                                                        onClick={() =>
-                                                                            extractCodeBlocks()
+                                                                        onClick={
+                                                                            handleDialogOpen
                                                                         }
                                                                         className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
                                                                     >
