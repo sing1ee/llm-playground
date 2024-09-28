@@ -60,16 +60,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     const files: Files = {};
     const cssCodeBlocks = result.match(/```css([\s\S]*?)```/g);
     const jsxCodeBlocks = result.match(/```jsx([\s\S]*?)```/g);
-    if (cssCodeBlocks) {
-      files['/styles.css'] = cssCodeBlocks
-        .map((block) => block.replace(/```css|```/g, ''))
-        .join('\n');
+    if (cssCodeBlocks && cssCodeBlocks.length > 0) {
+      const lastCssBlock = cssCodeBlocks[cssCodeBlocks.length - 1];
+      files['/styles.css'] = lastCssBlock.replace(/```css|```/g, '').trim();
     }
 
-    if (jsxCodeBlocks) {
-      files['/App.js'] = jsxCodeBlocks
-        .map((block) => block.replace(/```jsx|```/g, ''))
-        .join('\n');
+    if (jsxCodeBlocks && jsxCodeBlocks.length > 0) {
+      const lastJsxBlock = jsxCodeBlocks[jsxCodeBlocks.length - 1];
+      files['/App.js'] = lastJsxBlock.replace(/```jsx|```/g, '').trim();
     }
     setRunFiles(files);
   };
