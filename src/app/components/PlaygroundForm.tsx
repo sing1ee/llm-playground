@@ -635,9 +635,9 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                     className="max-w-screen h-screen"
                                   >
                                     <DialogHeader>
-                                      <DialogTitle>Run Code</DialogTitle>
+                                      <DialogTitle>C0</DialogTitle>
                                       <DialogDescription>
-                                        Run Code like Claude
+                                        Run Code like Claude Artifacts
                                       </DialogDescription>
                                     </DialogHeader>
                                     <SandpackProvider
