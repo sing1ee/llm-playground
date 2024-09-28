@@ -4,53 +4,53 @@ AI Language Playground is an interactive web application that allows users to ex
 
 ## Features
 
--   Interactive text generation using AI models
--   Customizable API settings (API Key, Base URL, Model selection)
--   System prompt support
--   Token usage tracking and cost estimation
--   History of generated content
--   Markdown rendering with syntax highlighting
--   Code copying and HTML/SVG rendering
--   Responsive design with full-screen mode
+- Interactive text generation using AI models
+- Customizable API settings (API Key, Base URL, Model selection)
+- System prompt support
+- Token usage tracking and cost estimation
+- History of generated content
+- Markdown rendering with syntax highlighting
+- Code copying and HTML/SVG rendering
+- Responsive design with full-screen mode
 
 ## Technologies Used
 
--   Next.js 14
--   React 18
--   TypeScript
--   Tailwind CSS
--   OpenAI API (customizable to other providers)
--   React Markdown
--   React Toastify
--   Radix UI components
+- Next.js 14
+- React 18
+- TypeScript
+- Tailwind CSS
+- OpenAI API (customizable to other providers)
+- React Markdown
+- React Toastify
+- Radix UI components
 
 ## Setup and Installation
 
 1. Clone the repository:
 
-    ```
-    git clone https://github.com/your-username/ai-language-playground.git
-    cd ai-language-playground
-    ```
+   ```
+   git clone https://github.com/your-username/ai-language-playground.git
+   cd ai-language-playground
+   ```
 
 2. Install dependencies:
 
-    ```
-    pnpm install
-    ```
+   ```
+   pnpm install
+   ```
 
 3. Set up environment variables:
    Create a `.env.local` file in the root directory and add your API key:
 
-    ```
-    OPENAI_API_KEY=your_api_key_here
-    ```
+   ```
+   OPENAI_API_KEY=your_api_key_here
+   ```
 
 4. Run the development server:
 
-    ```
-    pnpm dev
-    ```
+   ```
+   pnpm dev
+   ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 

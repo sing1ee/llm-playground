@@ -1,18 +1,18 @@
-import "./globals.css";
+import './globals.css';
 
 export const metadata = {
-    title: "LLM Playground",
-    description: "An LLM Playground using OpenAI API",
+  title: 'LLM Playground',
+  description: 'An LLM Playground using OpenAI API',
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-        <html lang="en">
-            <body>{children}</body>
-        </html>
-    );
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }
