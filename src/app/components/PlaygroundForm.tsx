@@ -79,7 +79,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
   }, [runFiles]);
 
   useEffect(() => {
-    extractCodeBlocks()
+    extractCodeBlocks();
   }, [result]);
 
   useEffect(() => {
@@ -628,11 +628,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                               <div>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                    >
-                                      Run
-                                    </Button>
+                                    <Button variant="outline">Run</Button>
                                   </DialogTrigger>
                                   <DialogContent className="sm:max-w-md">
                                     <DialogHeader>
