@@ -55,12 +55,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleSystemPrompt, setNewRoleSystemPrompt] = useState('');
   const [runFiles, setRunFiles] = useState({});
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleDialogOpen = () => {
-    setIsDialogOpen(true);
-    extractCodeBlocks();
-  };
   const extractCodeBlocks = () => {
     const files: Files = {};
     const cssCodeBlocks = result.match(/```css([\s\S]*?)```/g);
@@ -83,9 +78,10 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     console.log(runFiles);
   }, [runFiles]);
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-  };
+  useEffect(() => {
+    extractCodeBlocks()
+  }, [result]);
+
   useEffect(() => {
     const storedHistory = localStorage.getItem('playgroundHistory');
     if (storedHistory) {
@@ -634,11 +630,8 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                   <DialogTrigger asChild>
                                     <Button
                                       variant="outline"
-                                      onClick={() => {
-                                        extractCodeBlocks;
-                                      }}
                                     >
-                                      Share
+                                      Run
                                     </Button>
                                   </DialogTrigger>
                                   <DialogContent className="sm:max-w-md">
