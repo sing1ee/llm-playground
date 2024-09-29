@@ -46,7 +46,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [popoverContent, setPopoverContent] = useState('');
   const [settings, setSettings] = useState<Settings>({
     apiKey: '',
     baseUrl: '',
@@ -179,31 +178,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
-  };
-
-  const handleRenderContent = (content: string, isSvg: boolean) => {
-    if (isSvg) {
-      const htmlContent = `
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>SVG Render</title>
-                    <style>
-                        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                        svg { max-width: 100%; max-height: 100vh; }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                </body>
-                </html>
-            `;
-      setPopoverContent(htmlContent);
-    } else {
-      setPopoverContent(content);
-    }
   };
 
   const handleSettingsChange = (
@@ -567,29 +541,23 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                             >
                               <DownloadIcon></DownloadIcon>
                             </Button>
-                            {(isHtml || isSvg) && (
+                            {(isSvg || isHtml) && (
                               <Popover>
                                 <PopoverTrigger asChild>
-                                  <Button
-                                    onClick={() =>
-                                      handleRenderContent(text, isSvg)
-                                    }
-                                    className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
-                                  >
+                                  <Button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
                                     <PlayIcon></PlayIcon>
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[800px] h-[600px] p-0">
-                                  <div className="w-full h-full overflow-auto">
-                                    <iframe
-                                      srcDoc={popoverContent}
-                                      className="w-full h-full border-none"
-                                      title="Rendered Content"
-                                    />
-                                  </div>
+                                <PopoverContent className="p-0 w-auto h-auto max-w-[80vw] max-h-[80vh]">
+                                  {/*渲染 svg 的代码 text */}
+                                  <div
+                                    className="overflow-auto"
+                                    dangerouslySetInnerHTML={{ __html: text }}
+                                  />
                                 </PopoverContent>
                               </Popover>
                             )}
+
                             {isJsx && (
                               <div>
                                 <Dialog>
