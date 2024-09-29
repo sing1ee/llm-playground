@@ -544,7 +544,10 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                             {(isSvg || isHtml) && (
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <Button variant="outline">
+                                  <Button
+                                    variant="outline"
+                                    className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                                  >
                                     <PlayIcon></PlayIcon>
                                   </Button>
                                 </DialogTrigger>
