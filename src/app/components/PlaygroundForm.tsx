@@ -24,7 +24,6 @@ import {
   Settings,
   Role,
 } from '../lib/types';
-import RunCodeDialog from './RunCodeDialog';
 import {
   SandpackLayout,
   SandpackProvider,
@@ -32,6 +31,10 @@ import {
   SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
 import { cyberpunk } from '@codesandbox/sandpack-themes';
+import { saveAs } from 'file-saver';
+import CryptoJS from 'crypto-js';
+import { CopyIcon, DownloadIcon, PlayIcon } from '@radix-ui/react-icons';
+import IconTrash from './IconTrash';
 
 export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
   const [prompt, setPrompt] = useState('');
@@ -177,6 +180,39 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
     setIsFullScreen(!isFullScreen);
   };
 
+  const handleDownload = (text: string) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 创建一个 Image 对象
+    const img = new Image();
+
+    // 将 SVG 转换为 data URL
+    const svgBlob = new Blob([text], {
+      type: 'image/svg+xml;charset=utf-8',
+    });
+    const url = URL.createObjectURL(svgBlob);
+    img.src = url;
+    img.onload = () => {
+      // 设置 canvas 尺寸
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // 在 canvas 上绘制图像
+      ctx?.drawImage(img, 0, 0);
+
+      // 将 canvas 转换为 PNG 并下载
+      canvas.toBlob((blob) => {
+        // md5 of text
+        const md5 = CryptoJS.MD5(text).toString();
+        saveAs(blob!, `${md5}.png`);
+      });
+
+      // 清理
+      URL.revokeObjectURL(url);
+    };
+  };
+
   const handleRenderContent = (content: string, isSvg: boolean) => {
     if (isSvg) {
       const htmlContent = `
@@ -316,27 +352,14 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                   className="ml-1 p-1 text-red-500 hover:text-red-700"
                   title={`Delete ${role.name} role`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                    />
-                  </svg>
+                  <IconTrash />
                 </button>
               </div>
             ))}
           </ToggleGroup>
           <Popover>
             <PopoverTrigger asChild>
-              <button
+              <Button
                 className="p-2 bg-secondary rounded-full hover:bg-accent transition-colors"
                 aria-label="Add new role"
                 title="Add new role"
@@ -355,7 +378,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                     d="M12 4.5v15m7.5-7.5h-15"
                   />
                 </svg>
-              </button>
+              </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 bg-white">
               <div className="grid gap-4">
@@ -595,21 +618,24 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                 toast.success('Code copied successfully!')
                               }
                             >
-                              <button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
-                                Copy
-                              </button>
+                              <Button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                                <CopyIcon></CopyIcon>
+                              </Button>
                             </CopyToClipboard>
+                            <Button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                              <DownloadIcon></DownloadIcon>
+                            </Button>
                             {(isHtml || isSvg) && (
                               <Popover>
                                 <PopoverTrigger asChild>
-                                  <button
+                                  <Button
                                     onClick={() =>
                                       handleRenderContent(text, isSvg)
                                     }
                                     className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
                                   >
-                                    Render
-                                  </button>
+                                    <PlayIcon></PlayIcon>
+                                  </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[800px] h-[600px] p-0">
                                   <div className="w-full h-full overflow-auto">
@@ -626,7 +652,9 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                               <div>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="outline">Run</Button>
+                                    <Button variant="outline">
+                                      <PlayIcon></PlayIcon>
+                                    </Button>
                                   </DialogTrigger>
                                   <DialogContent
                                     style={{ height: '900px' }}
