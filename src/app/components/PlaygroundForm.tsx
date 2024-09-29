@@ -542,20 +542,25 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                               <DownloadIcon></DownloadIcon>
                             </Button>
                             {(isSvg || isHtml) && (
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline">
                                     <PlayIcon></PlayIcon>
                                   </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="p-0 w-auto h-auto max-w-[80vw] max-h-[80vh]">
-                                  {/*渲染 svg 的代码 text */}
+                                </DialogTrigger>
+                                <DialogContent className="p-0 w-auto h-auto max-w-[80vw] max-h-[80vh]">
+                                  <DialogHeader>
+                                    <DialogTitle>C0</DialogTitle>
+                                    <DialogDescription>
+                                      Run Code like Claude Artifacts
+                                    </DialogDescription>
+                                  </DialogHeader>
                                   <div
                                     className="overflow-auto"
                                     dangerouslySetInnerHTML={{ __html: text }}
                                   />
-                                </PopoverContent>
-                              </Popover>
+                                </DialogContent>
+                              </Dialog>
                             )}
 
                             {isJsx && (
