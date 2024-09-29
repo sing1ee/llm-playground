@@ -1,37 +1,49 @@
-// src/lib/downloadUtils.ts
-
-import CryptoJS from 'crypto-js';
 import { saveAs } from 'file-saver';
+import * as CryptoJS from 'crypto-js';
 
 export const handleDownload = (text: string) => {
+  console.log('download');
+  console.log(text);
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
-  // 创建一个 Image 对象
+  if (!ctx) {
+    console.error('Canvas context is not supported');
+    return;
+  }
+
+  // Create an SVG element and set its innerHTML to the SVG text
+  const svgElement = document.createElement('div');
+  svgElement.innerHTML = text;
+
+  // Measure the SVG dimensions
+  const svg = svgElement.firstElementChild as SVGSVGElement;
+  const { width, height } = svg.getBoundingClientRect();
+
+  // Set canvas dimensions
+  canvas.width = width;
+  canvas.height = height;
+
+  // Encode the SVG text to base64
+  const svgBase64 = btoa(unescape(encodeURIComponent(text)));
+  const svgUrl = `data:image/svg+xml;base64,${svgBase64}`;
+
   const img = new Image();
-
-  // 将 SVG 转换为 data URL
-  const svgBlob = new Blob([text], {
-    type: 'image/svg+xml;charset=utf-8',
-  });
-  const url = URL.createObjectURL(svgBlob);
-  img.src = url;
   img.onload = () => {
-    // 设置 canvas 尺寸
-    canvas.width = img.width;
-    canvas.height = img.height;
+    console.log('onload');
+    ctx.drawImage(img, 0, 0);
 
-    // 在 canvas 上绘制图像
-    ctx?.drawImage(img, 0, 0);
-
-    // 将 canvas 转换为 PNG 并下载
+    // Convert canvas to PNG and download
     canvas.toBlob((blob) => {
-      // md5 of text
       const md5 = CryptoJS.MD5(text).toString();
       saveAs(blob!, `${md5}.png`);
-    });
-
-    // 清理
-    URL.revokeObjectURL(url);
+    }, 'image/png');
   };
+  img.onerror = (error) => {
+    console.error('Image load error:', error); // Log any errors during image loading
+  };
+
+  img.src = svgUrl;
+  console.log(img);
 };
