@@ -31,8 +31,7 @@ import {
   SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
 import { cyberpunk } from '@codesandbox/sandpack-themes';
-import { saveAs } from 'file-saver';
-import CryptoJS from 'crypto-js';
+import { handleDownload } from '../lib/download';
 import { CopyIcon, DownloadIcon, PlayIcon } from '@radix-ui/react-icons';
 import IconTrash from './IconTrash';
 
@@ -178,39 +177,6 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
-  };
-
-  const handleDownload = (text: string) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    // 创建一个 Image 对象
-    const img = new Image();
-
-    // 将 SVG 转换为 data URL
-    const svgBlob = new Blob([text], {
-      type: 'image/svg+xml;charset=utf-8',
-    });
-    const url = URL.createObjectURL(svgBlob);
-    img.src = url;
-    img.onload = () => {
-      // 设置 canvas 尺寸
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      // 在 canvas 上绘制图像
-      ctx?.drawImage(img, 0, 0);
-
-      // 将 canvas 转换为 PNG 并下载
-      canvas.toBlob((blob) => {
-        // md5 of text
-        const md5 = CryptoJS.MD5(text).toString();
-        saveAs(blob!, `${md5}.png`);
-      });
-
-      // 清理
-      URL.revokeObjectURL(url);
-    };
   };
 
   const handleRenderContent = (content: string, isSvg: boolean) => {
@@ -622,7 +588,12 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                 <CopyIcon></CopyIcon>
                               </Button>
                             </CopyToClipboard>
-                            <Button className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300">
+                            <Button
+                              onClick={() => {
+                                handleDownload(text);
+                              }}
+                              className="bg-secondary text-white p-1 rounded text-sm hover:bg-accent transition-colors duration-300"
+                            >
                               <DownloadIcon></DownloadIcon>
                             </Button>
                             {(isHtml || isSvg) && (
