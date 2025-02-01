@@ -551,7 +551,7 @@ export default function PlaygroundForm({ setResult }: PlaygroundFormProps) {
                                     <PlayIcon></PlayIcon>
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="p-0 w-auto h-auto max-w-[80vw] max-h-[80vh]">
+                                <DialogContent className="p-2 w-auto h-auto min-w-[50vw] min-h-[50vh]">
                                   <DialogHeader>
                                     <DialogTitle>C0</DialogTitle>
                                     <DialogDescription>
